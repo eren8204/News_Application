@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">News_Application</string>
-    <string name="news_api_key">dca13db43b6d440388b1d82381207510</string>
+    <string name="app_name">News</string>
+    <string name="news_api_key">12ac8a8dced24f4abf216c1d3c7c066d</string>
     <string name="category">Category</string>
     <string name="new_heading">New Heading</string>
     <string name="sub_heading">Sub Heading</string>

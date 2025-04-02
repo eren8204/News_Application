@@ -6,27 +6,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".NewsDetailActivity">
-<androidx.appcompat.widget.Toolbar
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/toolbar_background"
-    android:id="@+id/toolbar">
-    <TextView
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:text="news App"
-        android:textStyle="bold"
-        android:textAlignment="center"
-        android:gravity="center"
-        android:textColor="@color/white"
-        android:textSize="24dp"
-    />
-</androidx.appcompat.widget.Toolbar>
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/idBtnReadNews"
-        android:layout_below="@id/toolbar">
+        android:layout_above="@id/idBtnReadNews">
 
 
         <RelativeLayout

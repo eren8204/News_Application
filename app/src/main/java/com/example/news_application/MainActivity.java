@@ -1,15 +1,18 @@
 package com.example.news_application;
 
+import android.annotation.SuppressLint;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.ActionBar;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,43 +33,73 @@ public class MainActivity extends AppCompatActivity implements CategoryRVAdapter
     private ArrayList<CategoryRVModal> categoryRVModalArrayList;
     private CategoryRVAdapter categoryRVAdapter;
     private NewsRVAdapter newsRVAdapter;
+    private int currentPage = 1, selectedPosition = 0;
+    private int pageSize = 5;
+    private String selectedCategory = "All";
+    private Button btnPrev, btnNext;
+    private TextView tvPageNumber;
 
     private static final String BASE_URL = "https://newsapi.org/";
 
+    @SuppressLint({"SourceLockedOrientationActivity", "NotifyDataSetChanged"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         statusBarColor();
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-//        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-//        getSupportActionBar().setCustomView(R.layout.action_bar_layout);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         newsRV = findViewById(R.id.idRVNews);
         categoryRV = findViewById(R.id.idRVCategories);
         loadingPB = findViewById(R.id.idPBLoading);
+        btnPrev = findViewById(R.id.btnPrev);
+        btnNext = findViewById(R.id.btnNext);
+        tvPageNumber = findViewById(R.id.tvPageNumber);
 
         articlesArrayList = new ArrayList<>();
         categoryRVModalArrayList = new ArrayList<>();
 
         newsRVAdapter = new NewsRVAdapter(articlesArrayList, this);
-        categoryRVAdapter = new CategoryRVAdapter(categoryRVModalArrayList, this, this::onCategoryClick);
+        categoryRVAdapter = new CategoryRVAdapter(categoryRVModalArrayList, this, this);
 
         newsRV.setLayoutManager(new LinearLayoutManager(this));
-        newsRV.setAdapter(newsRVAdapter); // Use newsRVAdapter here!
-        categoryRV.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)); // Optional horizontal layout
+        newsRV.setAdapter(newsRVAdapter);
+        categoryRV.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         categoryRV.setAdapter(categoryRVAdapter);
+        selectedPosition = 0;
+        categoryRVAdapter.notifyDataSetChanged();
+        btnPrev.setOnClickListener(v -> {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePageNumber();
+                articlesArrayList.clear();
+                getNews(selectedCategory, currentPage);
+            }
+        });
+
+        btnNext.setOnClickListener(v -> {
+            currentPage++;
+            updatePageNumber();
+            articlesArrayList.clear();
+            getNews(selectedCategory, currentPage);
+        });
 
         getCategories();
-        getNews("All");
-
+        getNews(selectedCategory, currentPage);
     }
+
+    private void updatePageNumber() {
+        tvPageNumber.setText(String.valueOf(currentPage));
+    }
+
     private void statusBarColor() {
         Window window = MainActivity.this.getWindow();
-        window.setStatusBarColor(ContextCompat.getColor(MainActivity.this,R.color.action2));
+        window.setStatusBarColor(ContextCompat.getColor(MainActivity.this, R.color.action2));
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void getCategories() {
-        categoryRVModalArrayList.add(new CategoryRVModal("All", "all")); // Use a simpler value here. We'll construct the URL later.
+        categoryRVModalArrayList.add(new CategoryRVModal("All", "all"));
         categoryRVModalArrayList.add(new CategoryRVModal("Technology", "technology"));
         categoryRVModalArrayList.add(new CategoryRVModal("Science", "science"));
         categoryRVModalArrayList.add(new CategoryRVModal("General", "general"));
@@ -76,10 +109,8 @@ public class MainActivity extends AppCompatActivity implements CategoryRVAdapter
         categoryRVAdapter.notifyDataSetChanged();
     }
 
-    private void getNews(String category) {
+    private void getNews(String category, int page) {
         loadingPB.setVisibility(View.VISIBLE);
-        articlesArrayList.clear(); // Clear existing articles
-
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -88,62 +119,55 @@ public class MainActivity extends AppCompatActivity implements CategoryRVAdapter
         RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
 
         Call<NewsModal> call;
-        String apiKey = getString(R.string.news_api_key);  // Get API key from strings.xml
-        if (category.equals("All")) {
-            call = retrofitAPI.getAllNews("v2/top-headlines?country=us&apiKey=" + apiKey); // Correct URL
-        } else {
-            // Construct the URL correctly
-            String categoryUrl = "v2/top-headlines?country=us&category=" + category + "&apiKey=" + apiKey; // Correct URL
-            call = retrofitAPI.getNewsByCategory(categoryUrl);
+        String apiKey = getString(R.string.news_api_key);
+        String pageUrl = "v2/top-headlines?country=us&page=" + page + "&pageSize=" + pageSize + "&apiKey=" + apiKey;
+
+        if (!category.equals("All")) {
+            pageUrl += "&category=" + category;
         }
 
-        call.enqueue(new Callback<NewsModal>() {
-            @Override
-            public void onResponse(Call<NewsModal> call, Response<NewsModal> response) {
-                loadingPB.setVisibility(View.GONE);
+        call = retrofitAPI.getNewsByCategory(pageUrl);
 
+        call.enqueue(new Callback<NewsModal>() {
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onResponse(@NonNull Call<NewsModal> call, @NonNull Response<NewsModal> response) {
+                loadingPB.setVisibility(View.GONE);
                 if (response.isSuccessful()) {
                     NewsModal newsModal = response.body();
-
                     if (newsModal != null) {
                         ArrayList<Articles> articles = newsModal.getArticles();
-
-                        if (articles != null) {
-                            articlesArrayList.clear(); // Clear the list before adding new items
-                            articlesArrayList.addAll(articles);  // Use addAll for efficiency
-
-                            newsRVAdapter.notifyDataSetChanged(); // Notify adapter of changes
+                        if (articles != null && !articles.isEmpty()) {
+                            newsRV.animate().alpha(0.0f).setDuration(200).withEndAction(() -> {
+                                articlesArrayList.clear();
+                                articlesArrayList.addAll(articles);
+                                newsRVAdapter.notifyDataSetChanged();
+                                newsRV.animate().alpha(1.0f).setDuration(200);
+                            });
                         } else {
-                            Log.e("MainActivity", "Articles list is null");
-                            Toast.makeText(MainActivity.this, "No articles found", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "No more articles available.", Toast.LENGTH_SHORT).show();
                         }
-                    } else {
-                        Log.e("MainActivity", "NewsModal is null");
-                        Toast.makeText(MainActivity.this, "Failed to retrieve news data", Toast.LENGTH_SHORT).show();
                     }
-                } else {
-                    Log.e("MainActivity", "Response not successful: " + response.code());
-                    try {
-                        Log.e("MainActivity", "Error Body: " + response.errorBody().string());  // Log the error body
-                    } catch (Exception e) {
-                        Log.e("MainActivity", "Error Body Exception: " + e.getMessage());
-                    }
-                    Toast.makeText(MainActivity.this, "Failed to retrieve news data. Code: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<NewsModal> call, Throwable t) {
-                loadingPB.setVisibility(View.GONE); // Ensure loading is hidden on failure
-                Log.e("MainActivity", "API call failed: " + t.getMessage());
-                Toast.makeText(MainActivity.this, "Failed to fetch news: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onFailure(@NonNull Call<NewsModal> call, @NonNull Throwable t) {
+                loadingPB.setVisibility(View.GONE);
+                Toast.makeText(MainActivity.this, "Failed to load news", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onCategoryClick(int position) {
-        String category = categoryRVModalArrayList.get(position).getCategory();
-        getNews(category);
+        selectedCategory = categoryRVModalArrayList.get(position).getCategory();
+        selectedPosition = position;
+        currentPage = 1;
+        updatePageNumber();
+        articlesArrayList.clear();
+        getNews(selectedCategory, currentPage);
+        categoryRVAdapter.notifyDataSetChanged();
     }
 }

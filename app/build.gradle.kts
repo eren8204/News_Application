@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "com.example.news_application"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.news_application"
@@ -32,6 +32,8 @@ android {
 }
 
 dependencies {
+
+    implementation(libs.work.runtime)
     implementation(libs.picasso)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)

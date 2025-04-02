@@ -19,25 +19,25 @@
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:text="News App"
-    android:textColor="@color/Dark_pink"
-    android:textAlignment="center"
-    android:padding="5dp"
-    android:gravity="center"
-    android:textSize="20dp"
-    android:textStyle="bold"
-    android:layout_marginEnd="15dp"
-    android:layout_marginRight="15dp"/>
-
+       android:textColor="@color/Dark_pink"
+       android:textAlignment="center"
+       android:padding="5dp"
+       android:gravity="center"
+       android:textSize="20dp"
+       android:textStyle="bold"
+       android:layout_marginEnd="15dp"
+       android:layout_marginRight="15dp"/>
   </RelativeLayout>
  </Toolbar>
+
  <androidx.recyclerview.widget.RecyclerView
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-   android:id="@+id/idRVCategories"
-  android:orientation="horizontal"
-  android:layout_below="@id/idToolbar"
+     android:id="@+id/idRVCategories"
+     android:orientation="horizontal"
+     android:layout_below="@id/idToolbar"
      tools:listitem="@layout/categories_rv_item"
-  app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
  <androidx.recyclerview.widget.RecyclerView
      android:id="@+id/idRVNews"
@@ -52,9 +52,46 @@
  <ProgressBar
      android:layout_width="wrap_content"
      android:layout_height="wrap_content"
-  android:layout_centerInParent="true"
-  android:id="@+id/idPBLoading"
-  android:visibility="gone"/>
+     android:layout_centerInParent="true"
+     android:id="@+id/idPBLoading"
+     android:visibility="gone"/>
 
+ <!-- Pagination Control -->
+ <LinearLayout
+     android:id="@+id/paginationLayout"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_alignParentBottom="true"
+     android:layout_centerHorizontal="true"
+     android:gravity="center"
+     android:orientation="horizontal"
+     android:padding="10dp">
+
+  <Button
+      android:id="@+id/btnPrev"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:backgroundTint="@color/black"
+      android:text="Previous &lt;" />
+
+
+  <TextView
+      android:id="@+id/tvPageNumber"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="1"
+      android:backgroundTint="@color/white"
+      android:layout_marginHorizontal="10dp"
+      android:textSize="18sp"
+      android:textStyle="bold" />
+
+  <Button
+      android:id="@+id/btnNext"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:backgroundTint="@color/black"
+      android:text="Next &gt;" />
+
+ </LinearLayout>
 
 </RelativeLayout>
