@@ -34,7 +34,6 @@ public class ApiWorker extends Worker {
             makeApiCall();
             return Result.success();
         } catch (Exception e) {
-            Log.e("ApiWorker", "Error making API call", e);
             return Result.failure();
         }
     }

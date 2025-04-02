@@ -2,6 +2,8 @@ package com.example.news_application;
 
 import android.annotation.SuppressLint;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -10,6 +12,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -33,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements CategoryRVAdapter
     private ArrayList<CategoryRVModal> categoryRVModalArrayList;
     private CategoryRVAdapter categoryRVAdapter;
     private NewsRVAdapter newsRVAdapter;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
     private int currentPage = 1, selectedPosition = 0;
     private int pageSize = 5;
     private String selectedCategory = "All";
@@ -83,9 +88,32 @@ public class MainActivity extends AppCompatActivity implements CategoryRVAdapter
             articlesArrayList.clear();
             getNews(selectedCategory, currentPage);
         });
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        Toast.makeText(this, "Notification Permission Granted", Toast.LENGTH_SHORT).show();
+                    } else {
+                        //Toast.makeText(this, "Permission Denied. Some features may not work.", Toast.LENGTH_LONG).show();
+                    }
+                });
 
+        checkNotificationPermission();
         getCategories();
         getNews(selectedCategory, currentPage);
+    }
+    private void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, "android.permission.POST_NOTIFICATIONS")
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestNotificationPermission();
+            }
+        }
+    }
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissionLauncher.launch("android.permission.POST_NOTIFICATIONS");
+        }
     }
 
     private void updatePageNumber() {

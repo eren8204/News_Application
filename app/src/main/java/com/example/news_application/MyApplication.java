@@ -25,8 +25,8 @@ public class MyApplication extends Application {
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);
 
-        PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(ApiWorker.class, 5, TimeUnit.SECONDS)
-                .setInitialDelay(3, TimeUnit.SECONDS)
+        PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(ApiWorker.class, 30, TimeUnit.SECONDS)
+                .setInitialDelay(5, TimeUnit.SECONDS)
                 .build();
 
         WorkManager.getInstance(this).enqueue(periodicWorkRequest);
